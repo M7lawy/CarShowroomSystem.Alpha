@@ -1,0 +1,2 @@
+1,Tanta Store,Tanta,123
+2,Zayed Showroom,Giza,012
