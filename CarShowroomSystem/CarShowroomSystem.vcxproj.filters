@@ -23,7 +23,16 @@
     <ClInclude Include="DataClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SystemManager.h">
+    <ClInclude Include="CustomerManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AdminManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SellerManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
