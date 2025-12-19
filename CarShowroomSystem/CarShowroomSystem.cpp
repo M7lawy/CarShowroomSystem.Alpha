@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdlib> 
+#include <limits> 
 #include "Database.h"
 #include "AdminManager.h"
 #include "SellerManager.h"
@@ -6,110 +8,179 @@
 
 using namespace std;
 
+void clearScreen() { system("cls"); }
+
 int main() {
     Database db;
     int choice;
 
     while (true) {
-        cout << "\n====================================\n";
-        cout << "1. ADMIN | 2. SELLER | 3. CUSTOMER | 4. SAVE & EXIT\n";
-        cout << "Choice: "; cin >> choice;
+        clearScreen();
+        cout << "====================================\n";
+        cout << "       CAR GRABBER SYSTEM           \n";
+        cout << "====================================\n";
+        cout << " 1. ADMIN GOD MODE\n";
+        cout << " 2. SELLER LOGIN\n";
+        cout << " 3. CUSTOMER LOGIN\n";
+        cout << " 4. EXIT APP\n";
+        cout << "====================================\n";
+        cout << " Choice: ";
 
-        // --- ADMIN ---
-        if (choice == 1) {
+        if (!(cin >> choice)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+
+        if (choice == 1) { // ADMIN
             string u, p; cout << "User: "; cin >> u; cout << "Pass: "; cin >> p;
-            int aId = AdminManager::login(db, u, p);
-            if (aId != -1) {
+            if (AdminManager::login(db, u, p) != -1) {
                 while (true) {
-                    cout << "\n[ADMIN] 1.Add 2.Delete 3.View Appointments 4.View All Data 5.Back\nChoice: ";
+                    clearScreen();
+                    cout << "======= ADMIN GOD MODE =======\n";
+                    cout << "1. Manage Showrooms\n";
+                    cout << "2. Manage Garages\n";
+                    cout << "3. View All Data\n";
+                    cout << "4. Add New Admin\n";
+                    cout << "5. Logout\nChoice: ";
                     int op; cin >> op;
+
                     if (op == 1) {
-                        cout << "1.Showroom 2.Garage: "; int t; cin >> t;
-                        if (t == 1) AdminManager::addShowroom(db); else AdminManager::addGarage(db);
+                        while (true) {
+                            clearScreen();
+                            cout << "\n-- ADMIN: SHOWROOM OPS --\n";
+                            cout << "1. Create Showroom\n2. Delete Showroom\n3. Add Car (Global)\n4. Delete Car (Global)\n5. Edit Car Price (Global)\n6. BACK\nChoice: ";
+                            int k; cin >> k;
+                            if (k == 1) AdminManager::addShowroom(db);
+                            else if (k == 2) AdminManager::deleteShowroom(db);
+                            else if (k == 3) AdminManager::addCarGlobal(db);
+                            else if (k == 4) AdminManager::deleteCarGlobal(db);
+                            else if (k == 5) AdminManager::editCarPriceGlobal(db);
+                            else break;
+                            system("pause");
+                        }
                     }
                     else if (op == 2) {
-                        cout << "1.Showroom 2.Garage 3.Service: "; int t; cin >> t;
-                        if (t == 1) AdminManager::deleteShowroom(db);
-                        else if (t == 2) AdminManager::deleteGarage(db);
-                        else AdminManager::deleteServiceGlobal(db);
+                        while (true) {
+                            clearScreen();
+                            cout << "\n-- ADMIN: GARAGE OPS --\n";
+                            cout << "1. Create Garage\n2. Delete Garage\n3. Add Service (Global)\n4. Delete Service (Global)\n5. Edit Service Price (Global)\n6. BACK\nChoice: ";
+                            int k; cin >> k;
+                            if (k == 1) AdminManager::addGarage(db);
+                            else if (k == 2) AdminManager::deleteGarage(db);
+                            else if (k == 3) AdminManager::addServiceGlobal(db);
+                            else if (k == 4) AdminManager::deleteServiceGlobal(db);
+                            else if (k == 5) AdminManager::editServicePriceGlobal(db);
+                            else break;
+                            system("pause");
+                        }
                     }
-                    else if (op == 3) AdminManager::viewAppointmentsGlobal(db);
-                    else if (op == 4) AdminManager::viewAll(db);
-                    else if (op == 5) break;
+                    else if (op == 3) { AdminManager::viewAll(db); system("pause"); }
+                    else if (op == 4) { AdminManager::addAdmin(db); system("pause"); }
+                    else break;
                 }
             }
-            else cout << "Failed.\n";
+            else { cout << "Wrong Credentials!\n"; system("pause"); }
         }
 
-        // --- SELLER ---
-        else if (choice == 2) {
-            cout << "1. Login 2. Register: "; int op; cin >> op;
+        else if (choice == 2) { // SELLER
+            cout << "1. Login  2. Register: "; int op; cin >> op;
             if (op == 2) SellerManager::registerSeller(db);
             else {
                 string u, p; cout << "User: "; cin >> u; cout << "Pass: "; cin >> p;
                 int sId = SellerManager::login(db, u, p);
                 if (sId != -1) {
                     while (true) {
-                        cout << "\n[SELLER] \n1. My Showroom (Add/Del Car)\n2. My Garage (Add/Del Srv)\n3. View My Inventory/Services\n4. Sold Cars\n5. View Appointments\n6. Back\nChoice: ";
-                        int sop; cin >> sop;
+                        clearScreen();
+                        cout << "======= SELLER DASHBOARD =======\n";
+                        cout << "1. Manage Showroom (Cars)\n";
+                        cout << "2. Manage Garage (Services)\n";
+                        cout << "3. View My Business Summary\n";
+                        cout << "4. History (Sold Cars / Services)\n";
+                        cout << "5. Logout\nChoice: ";
+                        int k; cin >> k;
 
-                        if (sop == 1) {
-                            cout << "1. Create 2. Add Car 3. Del Car 4. DELETE SHOWROOM: "; int k; cin >> k;
-                            if (k == 1) SellerManager::createShowroom(db, sId);
-                            else if (k == 2) SellerManager::addCar(db, sId);
-                            else if (k == 3) SellerManager::deleteCar(db, sId);
-                            else if (k == 4) SellerManager::deleteMyShowroom(db, sId);
+                        if (k == 1) { // MANAGE SHOWROOM SUB-MENU
+                            while (true) {
+                                clearScreen();
+                                SellerManager::showMyCars(db, sId);
+                                cout << "\n-- SHOWROOM OPS --\n";
+                                cout << "1. Create Showroom\n2. Add Car\n3. Delete Car\n4. Edit Car Prices\n5. DELETE ALL CARS\n6. DELETE SHOWROOM\n7. BACK\nChoice: ";
+                                int x; cin >> x;
+                                if (x == 1) SellerManager::createShowroom(db, sId);
+                                else if (x == 2) SellerManager::addCar(db, sId);
+                                else if (x == 3) SellerManager::deleteCar(db, sId);
+                                else if (x == 4) SellerManager::editCarPrice(db, sId);
+                                else if (x == 5) SellerManager::deleteAllCars(db, sId);
+                                else if (x == 6) { SellerManager::deleteMyShowroom(db, sId); break; }
+                                else break; // Back
+                                system("pause");
+                            }
                         }
-                        else if (sop == 2) {
-                            cout << "1. Create 2. Add Srv 3. Del Srv 4. DELETE GARAGE: "; int k; cin >> k;
-                            if (k == 1) SellerManager::createGarage(db, sId);
-                            else if (k == 2) SellerManager::addService(db, sId);
-                            else if (k == 3) SellerManager::deleteService(db, sId);
-                            else if (k == 4) SellerManager::deleteMyGarage(db, sId);
+                        else if (k == 2) { // MANAGE GARAGE SUB-MENU
+                            while (true) {
+                                clearScreen();
+                                SellerManager::showMyServices(db, sId);
+                                cout << "\n-- GARAGE OPS --\n";
+                                cout << "1. Create Garage\n2. Add Service\n3. Delete Service\n4. Edit Service Price\n5. DELETE ALL SERVICES\n6. DELETE GARAGE\n7. BACK\nChoice: ";
+                                int x; cin >> x;
+                                if (x == 1) SellerManager::createGarage(db, sId);
+                                else if (x == 2) SellerManager::addService(db, sId);
+                                else if (x == 3) SellerManager::deleteService(db, sId);
+                                else if (x == 4) SellerManager::editServicePrice(db, sId);
+                                else if (x == 5) SellerManager::deleteAllServices(db, sId);
+                                else if (x == 6) { SellerManager::deleteMyGarage(db, sId); break; }
+                                else break; // Back
+                                system("pause");
+                            }
                         }
-                        else if (sop == 3) SellerManager::viewMyBusiness(db, sId);
-                        else if (sop == 4) SellerManager::manageSoldCars(db, sId);
-                        else if (sop == 5) SellerManager::viewAppointments(db, sId);
-                        else if (sop == 6) break;
+                        else if (k == 3) { SellerManager::viewMyBusiness(db, sId); system("pause"); }
+                        else if (k == 4) {
+                            cout << "\n-- HISTORY --\n";
+                            cout << "1. Sold Cars Log (View/Delete)\n2. Services Provided\nChoice: ";
+                            int x; cin >> x;
+                            if (x == 1) SellerManager::viewSoldCars(db, sId);
+                            else SellerManager::viewServicesProvided(db, sId);
+                            system("pause");
+                        }
+                        else break;
                     }
                 }
-                else cout << "Failed.\n";
+                else { cout << "Failed.\n"; system("pause"); }
             }
         }
 
-        // --- CUSTOMER ---
-        else if (choice == 3) {
-            cout << "1. Login 2. Register: "; int op; cin >> op;
+        else if (choice == 3) { // CUSTOMER
+            cout << "1. Login  2. Register: "; int op; cin >> op;
             if (op == 2) CustomerManager::registerCustomer(db);
             else {
                 string u, p; cout << "User: "; cin >> u; cout << "Pass: "; cin >> p;
                 int cId = CustomerManager::login(db, u, p);
                 if (cId != -1) {
                     while (true) {
-                        cout << "\n[CUSTOMER MENU]\n";
-                        cout << "1. View Entire Market (Cars & Services)\n";
-                        cout << "2. Search Specific Car\n";
-                        cout << "3. Buy / Rent / Installment (With Confirm)\n";
-                        cout << "4. Search Service\n";
-                        cout << "5. Book Service\n";
-                        cout << "6. View History\n";
-                        cout << "7. Logout\nChoice: ";
-                        int cop; cin >> cop;
+                        clearScreen();
+                        cout << "======= CUSTOMER MENU =======\n";
+                        cout << "1. View Market\n";
+                        cout << "2. Buy / Rent / Reserve Car\n";
+                        cout << "3. Book Service Appointment\n";
+                        cout << "4. My Reservations (Buy/Cancel)\n";
+                        cout << "5. View My History\n";
+                        cout << "6. Logout\nChoice: ";
+                        int k; cin >> k;
 
-                        if (cop == 1) CustomerManager::viewMarket(db);
-                        else if (cop == 2) CustomerManager::searchCars(db);
-                        else if (cop == 3) CustomerManager::buyCarOrRent(db, cId);
-                        else if (cop == 4) CustomerManager::searchServices(db);
-                        else if (cop == 5) CustomerManager::bookService(db, cId);
-                        else if (cop == 6) CustomerManager::viewHistory(db, cId);
-                        else if (cop == 7) break;
+                        if (k == 1) { CustomerManager::viewMarket(db); system("pause"); }
+                        else if (k == 2) { CustomerManager::buyCarOrRent(db, cId); system("pause"); }
+                        else if (k == 3) { CustomerManager::bookService(db, cId); system("pause"); }
+                        else if (k == 4) {
+                            CustomerManager::viewMyReservations(db, cId);
+                            cout << "1. Buy Reserved Car  2. Cancel Reservation  3. Back: "; int z; cin >> z;
+                            if (z == 1) CustomerManager::buyCarOrRent(db, cId);
+                            else if (z == 2) CustomerManager::cancelReservation(db, cId);
+                        }
+                        else if (k == 5) { CustomerManager::viewHistory(db, cId); system("pause"); }
+                        else break;
                     }
                 }
-                else cout << "Failed.\n";
+                else { cout << "Failed.\n"; system("pause"); }
             }
         }
-
-        else if (choice == 4) { db.saveAll(); break; }
+        else break;
     }
     return 0;
 }
