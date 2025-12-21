@@ -19,7 +19,7 @@ int main() {
         cout << "====================================\n";
         cout << "       CAR GRABBER SYSTEM           \n";
         cout << "====================================\n";
-        cout << " 1. ADMIN GOD MODE\n";
+        cout << " 1. ADMIN \n";
         cout << " 2. SELLER LOGIN\n";
         cout << " 3. CUSTOMER LOGIN\n";
         cout << " 4. EXIT APP\n";

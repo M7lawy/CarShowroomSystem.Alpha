@@ -87,7 +87,7 @@ public:
     }
 
     static void buyCarOrRent(Database& db, int custID) {
-        viewShowroomsOnly(db); // ONLY SHOW CARS
+        viewShowroomsOnly(db);
         int sId, cId; cout << "\nEnter Showroom ID: "; cin >> sId; cout << "Enter Car ID: "; cin >> cId;
 
         for (auto& r : db.showrooms) {

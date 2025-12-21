@@ -48,7 +48,7 @@ public:
         cout << "-----------------------\n";
     }
 
-    // --- OPS (Same as before, displays updated above) ---
+    
     static void addShowroom(Database& db) {
         int maxId = 0; for (const auto& x : db.showrooms) if (x.id > maxId) maxId = x.id;
         Showroom s; s.id = maxId + 1;

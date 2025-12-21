@@ -20,7 +20,7 @@ public:
         cout << "Registered! ID: " << s.id << endl;
     }
 
-    // --- HELPERS (With Rent Price) ---
+    // --- HELPERS ---
     static void showMyCars(Database& db, int sellerID) {
         int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
         if (rId == -1) { cout << "No Showroom.\n"; return; }
@@ -95,7 +95,7 @@ public:
         cout << "Car not found.\n";
     }
 
-    // ** NEW: DELETE ALL CARS **
+    
     static void deleteAllCars(Database& db, int sellerID) {
         int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
         if (rId == -1) return;
@@ -110,7 +110,7 @@ public:
         }
     }
 
-    // ** NEW: DELETE SHOWROOM **
+    // ** DELETE SHOWROOM **
     static void deleteMyShowroom(Database& db, int sellerID) {
         int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
         if (rId == -1) return;
@@ -121,7 +121,7 @@ public:
         for (auto it = db.showrooms.begin(); it != db.showrooms.end(); ++it) {
             if (it->id == rId) {
                 db.showrooms.erase(it);
-                for (auto& s : db.sellers) if (s.id == sellerID) s.myShowroomID = -1; // Unlink
+                for (auto& s : db.sellers) if (s.id == sellerID) s.myShowroomID = -1;
                 db.saveAll(); cout << "Showroom Deleted.\n"; return;
             }
         }
