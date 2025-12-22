@@ -1,8 +1,8 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include <vector>
 #include <ctime>
+#include "LinkedList.h" 
 
 using namespace std;
 
@@ -16,6 +16,7 @@ public:
     HistoryRecordCars(int sId, int cId, string d, string t, double amt, int months = 0) {
         showroomID = sId; carID = cId; date = d; type = t; totalAmount = amt; installmentMonths = months;
     }
+    HistoryRecordCars() {}
 };
 
 class HistoryRecordServices {
@@ -27,6 +28,7 @@ public:
     HistoryRecordServices(int gId, int sId, string d, string day, double c) {
         garageID = gId; serviceID = sId; date = d; dayBooked = day; cost = c;
     }
+    HistoryRecordServices() {}
 };
 
 class Car {
@@ -37,8 +39,9 @@ public:
     double price, rentPrice;
     int status;
     time_t reservationStartTime;
-    int reservedByCustomerID; // New: Tracks who owns the reservation
+    int reservedByCustomerID;
 
+    Car() {}
     Car(int id, string mk, string md, int yr, double pr, double rPr, int st = 0, time_t resTime = 0, int resCustId = -1) {
         this->id = id; this->make = mk; this->model = md; this->year = yr;
         this->price = pr; this->rentPrice = rPr; this->status = st;
@@ -52,6 +55,7 @@ public:
     int id;
     string name;
     double price;
+    Service() {}
     Service(int id, string n, double p) { this->id = id; this->name = n; this->price = p; }
 };
 
@@ -59,14 +63,14 @@ class Showroom {
 public:
     int id;
     string name, location, phone;
-    vector<Car> cars;
+    LinkedList<Car> cars;
 };
 
 class Garage {
 public:
     int id;
     string name, location, phone;
-    vector<Service> services;
+    LinkedList<Service> services;
 };
 
 class Seller {
@@ -87,6 +91,6 @@ class Customer {
 public:
     int id;
     string username, password;
-    vector<HistoryRecordCars> carHistory;
-    vector<HistoryRecordServices> serviceHistory;
+    LinkedList<HistoryRecordCars> carHistory;
+    LinkedList<HistoryRecordServices> serviceHistory;
 };

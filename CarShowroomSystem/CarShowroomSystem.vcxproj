@@ -134,6 +134,7 @@
     <ClInclude Include="CustomerManager.h" />
     <ClInclude Include="Database.h" />
     <ClInclude Include="DataClasses.h" />
+    <ClInclude Include="LinkedList.h" />
     <ClInclude Include="SellerManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

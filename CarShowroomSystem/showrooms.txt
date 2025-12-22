@@ -1,0 +1,10 @@
+1,BMW Center,Cairo,01000001
+2,Mercedes Center,Alexandria,01000002
+3,Audi Center,Giza,01000003
+4,Toyota Center,Luxor,01000004
+5,Honda Center,Aswan,01000005
+6,Ford Center,Mansoura,01000006
+7,Tesla Center,Tanta,01000007
+8,Nissan Center,Suez,01000008
+9,Ferrari Center,Port Said,01000009
+10,Porsche Center,Fayoum,010000010

@@ -1,0 +1,10 @@
+1,Garage Cairo,Cairo,01200001
+2,Garage Alexandria,Alexandria,01200002
+3,Garage Giza,Giza,01200003
+4,Garage Luxor,Luxor,01200004
+5,Garage Aswan,Aswan,01200005
+6,Garage Mansoura,Mansoura,01200006
+7,Garage Tanta,Tanta,01200007
+8,Garage Suez,Suez,01200008
+9,Garage Port Said,Port Said,01200009
+10,Garage Fayoum,Fayoum,012000010

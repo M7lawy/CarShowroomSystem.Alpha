@@ -26,24 +26,30 @@ int main() {
         cout << "====================================\n";
         cout << " Choice: ";
 
-        if (!(cin >> choice)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+        if (!(cin >> choice)) { // Input Validation
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
 
         if (choice == 1) { // ADMIN
             string u, p; cout << "User: "; cin >> u; cout << "Pass: "; cin >> p;
             if (AdminManager::login(db, u, p) != -1) {
                 while (true) {
                     clearScreen();
-                    cout << "======= ADMIN GOD MODE =======\n";
+                    cout << "======= ADMIN =======\n";
                     cout << "1. Manage Showrooms\n";
                     cout << "2. Manage Garages\n";
                     cout << "3. View All Data\n";
                     cout << "4. Add New Admin\n";
-                    cout << "5. Logout\nChoice: ";
+                    cout << "5. Change Password\n";
+                    cout << "6. Logout\nChoice: ";
                     int op; cin >> op;
 
                     if (op == 1) {
                         while (true) {
                             clearScreen();
+							AdminManager::listShowrooms(db);
                             cout << "\n-- ADMIN: SHOWROOM OPS --\n";
                             cout << "1. Create Showroom\n2. Delete Showroom\n3. Add Car (Global)\n4. Delete Car (Global)\n5. Edit Car Price (Global)\n6. BACK\nChoice: ";
                             int k; cin >> k;
@@ -59,6 +65,7 @@ int main() {
                     else if (op == 2) {
                         while (true) {
                             clearScreen();
+							AdminManager::listGarages(db);
                             cout << "\n-- ADMIN: GARAGE OPS --\n";
                             cout << "1. Create Garage\n2. Delete Garage\n3. Add Service (Global)\n4. Delete Service (Global)\n5. Edit Service Price (Global)\n6. BACK\nChoice: ";
                             int k; cin >> k;
@@ -73,6 +80,7 @@ int main() {
                     }
                     else if (op == 3) { AdminManager::viewAll(db); system("pause"); }
                     else if (op == 4) { AdminManager::addAdmin(db); system("pause"); }
+                    else if (op == 5) { AdminManager::changePassword(db, AdminManager::login(db, u, p)); system("pause"); }
                     else break;
                 }
             }
@@ -93,10 +101,11 @@ int main() {
                         cout << "2. Manage Garage (Services)\n";
                         cout << "3. View My Business Summary\n";
                         cout << "4. History (Sold Cars / Services)\n";
-                        cout << "5. Logout\nChoice: ";
+                        cout << "5. Change Password\n";
+                        cout << "6. Logout\nChoice: ";
                         int k; cin >> k;
 
-                        if (k == 1) { // MANAGE SHOWROOM SUB-MENU
+                        if (k == 1) {
                             while (true) {
                                 clearScreen();
                                 SellerManager::showMyCars(db, sId);
@@ -113,7 +122,7 @@ int main() {
                                 system("pause");
                             }
                         }
-                        else if (k == 2) { // MANAGE GARAGE SUB-MENU
+                        else if (k == 2) {
                             while (true) {
                                 clearScreen();
                                 SellerManager::showMyServices(db, sId);
@@ -139,6 +148,7 @@ int main() {
                             else SellerManager::viewServicesProvided(db, sId);
                             system("pause");
                         }
+                        else if (k == 5) { SellerManager::changePassword(db, sId); system("pause"); }
                         else break;
                     }
                 }
@@ -161,7 +171,8 @@ int main() {
                         cout << "3. Book Service Appointment\n";
                         cout << "4. My Reservations (Buy/Cancel)\n";
                         cout << "5. View My History\n";
-                        cout << "6. Logout\nChoice: ";
+                        cout << "6. Change Password\n";
+                        cout << "7. Logout\nChoice: ";
                         int k; cin >> k;
 
                         if (k == 1) { CustomerManager::viewMarket(db); system("pause"); }
@@ -174,6 +185,7 @@ int main() {
                             else if (z == 2) CustomerManager::cancelReservation(db, cId);
                         }
                         else if (k == 5) { CustomerManager::viewHistory(db, cId); system("pause"); }
+                        else if (k == 6) { CustomerManager::changePassword(db, cId); system("pause"); }
                         else break;
                     }
                 }

@@ -1,19 +1,19 @@
 #define _CRT_SECURE_NO_WARNINGS
 #pragma once
-#include <vector>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "DataClasses.h"
 
 using namespace std;
 
 class Database {
 public:
-    vector<Showroom> showrooms;
-    vector<Garage> garages;
-    vector<Admin> admins;
-    vector<Seller> sellers;
-    vector<Customer> customers;
+    LinkedList<Showroom> showrooms;
+    LinkedList<Garage> garages;
+    LinkedList<Admin> admins;
+    LinkedList<Seller> sellers;
+    LinkedList<Customer> customers;
 
     vector<string> split(string s, char delimiter) {
         vector<string> tokens; string token; istringstream tokenStream(s);
@@ -24,104 +24,135 @@ public:
     Database() { loadAll(); }
 
     void saveAll() {
-        { ofstream f("admins.txt"); for (const auto& a : admins) f << a.id << "," << a.username << "," << a.password << endl; }
-        { ofstream f("sellers.txt"); for (const auto& s : sellers) f << s.id << "," << s.username << "," << s.password << "," << s.myShowroomID << "," << s.myGarageID << endl; }
-        { ofstream f("customers.txt"); for (const auto& c : customers) f << c.id << "," << c.username << "," << c.password << endl; }
-        { ofstream f("showrooms.txt"); for (const auto& r : showrooms) f << r.id << "," << r.name << "," << r.location << "," << r.phone << endl; }
-        { ofstream f("garages.txt"); for (const auto& g : garages) f << g.id << "," << g.name << "," << g.location << "," << g.phone << endl; }
+        { ofstream f("admins.txt"); LinkedList<Admin>::Node* curr = admins.head; while (curr) { f << curr->data.id << "," << curr->data.username << "," << curr->data.password << endl; curr = curr->next; } }
+        { ofstream f("sellers.txt"); LinkedList<Seller>::Node* curr = sellers.head; while (curr) { f << curr->data.id << "," << curr->data.username << "," << curr->data.password << "," << curr->data.myShowroomID << "," << curr->data.myGarageID << endl; curr = curr->next; } }
+        { ofstream f("customers.txt"); LinkedList<Customer>::Node* curr = customers.head; while (curr) { f << curr->data.id << "," << curr->data.username << "," << curr->data.password << endl; curr = curr->next; } }
+        { ofstream f("showrooms.txt"); LinkedList<Showroom>::Node* curr = showrooms.head; while (curr) { f << curr->data.id << "," << curr->data.name << "," << curr->data.location << "," << curr->data.phone << endl; curr = curr->next; } }
+        { ofstream f("garages.txt"); LinkedList<Garage>::Node* curr = garages.head; while (curr) { f << curr->data.id << "," << curr->data.name << "," << curr->data.location << "," << curr->data.phone << endl; curr = curr->next; } }
+
         {
             ofstream f("cars.txt");
-            for (const auto& r : showrooms) {
-                for (const auto& c : r.cars) {
-                    f << r.id << "," << c.id << "," << c.make << "," << c.model << "," << c.year << ","
-                        << c.price << "," << c.status << "," << c.rentPrice << "," << c.reservationStartTime << "," << c.reservedByCustomerID << endl;
+            LinkedList<Showroom>::Node* rNode = showrooms.head;
+            while (rNode) {
+                LinkedList<Car>::Node* cNode = rNode->data.cars.head;
+                while (cNode) {
+                    f << rNode->data.id << "," << cNode->data.id << "," << cNode->data.make << "," << cNode->data.model << "," << cNode->data.year << ","
+                        << cNode->data.price << "," << cNode->data.status << "," << cNode->data.rentPrice << "," << cNode->data.reservationStartTime << "," << cNode->data.reservedByCustomerID << endl;
+                    cNode = cNode->next;
                 }
+                rNode = rNode->next;
             }
         }
+
         {
-            ofstream f("Services.txt");
-            for (const auto& g : garages) {
-                for (const auto& s : g.services) f << g.id << "," << s.id << "," << s.name << "," << s.price << endl;
+            ofstream f("services.txt");
+            LinkedList<Garage>::Node* gNode = garages.head;
+            while (gNode) {
+                LinkedList<Service>::Node* sNode = gNode->data.services.head;
+                while (sNode) {
+                    f << gNode->data.id << "," << sNode->data.id << "," << sNode->data.name << "," << sNode->data.price << endl;
+                    sNode = sNode->next;
+                }
+                gNode = gNode->next;
             }
         }
+
         {
             ofstream f("history_cars.txt");
-            for (const auto& c : customers) {
-                for (const auto& h : c.carHistory) f << c.id << "," << h.showroomID << "," << h.carID << "," << h.date << "," << h.type << "," << h.totalAmount << "," << h.installmentMonths << endl;
+            LinkedList<Customer>::Node* cNode = customers.head;
+            while (cNode) {
+                LinkedList<HistoryRecordCars>::Node* hNode = cNode->data.carHistory.head;
+                while (hNode) {
+                    f << cNode->data.id << "," << hNode->data.showroomID << "," << hNode->data.carID << "," << hNode->data.date << "," << hNode->data.type << "," << hNode->data.totalAmount << "," << hNode->data.installmentMonths << endl;
+                    hNode = hNode->next;
+                }
+                cNode = cNode->next;
             }
         }
         {
             ofstream f("history_services.txt");
-            for (const auto& c : customers) {
-                for (const auto& h : c.serviceHistory) f << c.id << "," << h.garageID << "," << h.serviceID << "," << h.date << "," << h.dayBooked << "," << h.cost << endl;
+            LinkedList<Customer>::Node* cNode = customers.head;
+            while (cNode) {
+                LinkedList<HistoryRecordServices>::Node* hNode = cNode->data.serviceHistory.head;
+                while (hNode) {
+                    f << cNode->data.id << "," << hNode->data.garageID << "," << hNode->data.serviceID << "," << hNode->data.date << "," << hNode->data.dayBooked << "," << hNode->data.cost << endl;
+                    hNode = hNode->next;
+                }
+                cNode = cNode->next;
             }
         }
     }
 
     void generateDummyData() {
-        if (!admins.empty()) return;
+        if (!admins.isEmpty()) return;
 
-        Admin a; a.id = 1; a.username = "admin"; a.password = "123"; admins.push_back(a);
+        Admin a; a.id = 1; a.username = "admin"; a.password = "123"; admins.append(a);
 
         string makes[] = { "BMW", "Mercedes", "Audi", "Toyota", "Honda", "Ford", "Tesla", "Nissan", "Ferrari", "Porsche" };
         string models[] = { "X5", "C-Class", "A4", "Camry", "Civic", "Mustang", "Model S", "Altima", "Spider", "911" };
         string locations[] = { "Cairo", "Alexandria", "Giza", "Luxor", "Aswan", "Mansoura", "Tanta", "Suez", "Port Said", "Fayoum" };
         string srvNames[] = { "Oil Change", "Tire Rotation", "Brake Check", "Engine Tuneup", "Car Wash", "Battery Replace" };
 
-        // Safe ID Counters
-        int sellerIdCounter = 1;
-        int custIdCounter = 1;
+        int sellerIdCounter = 1; int custIdCounter = 1;
 
         for (int i = 1; i <= 10; i++) {
             Seller s; s.id = sellerIdCounter++; s.username = "seller" + to_string(i); s.password = "123";
 
-            // Showroom ID
-            int srId = 1; for (auto& x : showrooms) if (x.id >= srId) srId = x.id + 1;
+            int srId = 1; LinkedList<Showroom>::Node* t = showrooms.head;
+            while (t) { if (t->data.id >= srId) srId = t->data.id + 1; t = t->next; }
+
             Showroom sr; sr.id = srId; sr.name = makes[i - 1] + " Center"; sr.location = locations[i - 1]; sr.phone = "0100000" + to_string(i);
 
-            // Car IDs (Local to showroom logic, but ensuring unique sequence)
             for (int j = 0; j < 4; j++) {
-                int cId = 1; for (auto& car : sr.cars) if (car.id >= cId) cId = car.id + 1;
+                int cId = 1; LinkedList<Car>::Node* ct = sr.cars.head;
+                while (ct) { if (ct->data.id >= cId) cId = ct->data.id + 1; ct = ct->next; }
+
                 Car c(cId, makes[i - 1], models[i - 1], 2020 + j, 20000 + (j * 5000), 200 + (j * 50));
-                sr.cars.push_back(c);
+                sr.cars.append(c);
             }
-            showrooms.push_back(sr); s.myShowroomID = sr.id;
+            showrooms.append(sr); s.myShowroomID = sr.id;
 
-            // Garage ID
-            int grId = 1; for (auto& x : garages) if (x.id >= grId) grId = x.id + 1;
+            int grId = 1; LinkedList<Garage>::Node* gt = garages.head;
+            while (gt) { if (gt->data.id >= grId) grId = gt->data.id + 1; gt = gt->next; }
+
             Garage g; g.id = grId; g.name = "Garage " + locations[i - 1]; g.location = locations[i - 1]; g.phone = "0120000" + to_string(i);
-
             for (int k = 0; k < 4; k++) {
-                int srvId = 1; for (auto& sv : g.services) if (sv.id >= srvId) srvId = sv.id + 1;
-                g.services.push_back(Service(srvId, srvNames[k % 6], 50 + (k * 20)));
+                int srvId = 1; LinkedList<Service>::Node* st = g.services.head;
+                while (st) { if (st->data.id >= srvId) srvId = st->data.id + 1; st = st->next; }
+                g.services.append(Service(srvId, srvNames[k % 6], 50 + (k * 20)));
             }
-            garages.push_back(g); s.myGarageID = g.id;
-            sellers.push_back(s);
+            garages.append(g); s.myGarageID = g.id;
+            sellers.append(s);
         }
 
         for (int i = 1; i <= 5; i++) {
-            Customer c; c.id = custIdCounter++; c.username = "cust" + to_string(i); c.password = "123"; customers.push_back(c);
+            Customer c; c.id = custIdCounter++; c.username = "cust" + to_string(i); c.password = "123"; customers.append(c);
         }
         saveAll();
     }
 
     void loadAll() {
         string line;
+
         ifstream aFile("admins.txt");
         if (aFile.is_open()) {
             while (getline(aFile, line)) {
                 vector<string> d = split(line, ',');
-                if (d.size() >= 3) { Admin a; a.id = stoi(d[0]); a.username = d[1]; a.password = d[2]; admins.push_back(a); }
+                if (d.size() >= 3) { Admin a; a.id = stoi(d[0]); a.username = d[1]; a.password = d[2]; admins.append(a); }
             }
         }
-        if (admins.empty()) { generateDummyData(); return; }
+        if (admins.isEmpty()) { generateDummyData(); return; }
 
-        ifstream slFile("sellers.txt"); while (getline(slFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 5) { Seller s; s.id = stoi(d[0]); s.username = d[1]; s.password = d[2]; s.myShowroomID = stoi(d[3]); s.myGarageID = stoi(d[4]); sellers.push_back(s); } }
-        ifstream cFile("customers.txt"); while (getline(cFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 3) { Customer c; c.id = stoi(d[0]); c.username = d[1]; c.password = d[2]; customers.push_back(c); } }
-        ifstream shFile("showrooms.txt"); while (getline(shFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 4) { Showroom s; s.id = stoi(d[0]); s.name = d[1]; s.location = d[2]; s.phone = d[3]; showrooms.push_back(s); } }
-        ifstream gFile("Garage.txt"); while (getline(gFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 4) { Garage g; g.id = stoi(d[0]); g.name = d[1]; g.location = d[2]; g.phone = d[3]; garages.push_back(g); } }
+        ifstream slFile("sellers.txt"); while (getline(slFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 5) { Seller s; s.id = stoi(d[0]); s.username = d[1]; s.password = d[2]; s.myShowroomID = stoi(d[3]); s.myGarageID = stoi(d[4]); sellers.append(s); } }
+        ifstream cFile("customers.txt"); while (getline(cFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 3) { Customer c; c.id = stoi(d[0]); c.username = d[1]; c.password = d[2]; customers.append(c); } }
 
-        ifstream carFile("cars.txt");
+        ifstream shFile("showrooms.txt"); if (!shFile.is_open()) shFile.open("Showrooms.txt");
+        while (getline(shFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 4) { Showroom s; s.id = stoi(d[0]); s.name = d[1]; s.location = d[2]; s.phone = d[3]; showrooms.append(s); } }
+
+        ifstream gFile("garages.txt"); if (!gFile.is_open()) gFile.open("Garage.txt");
+        while (getline(gFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 4) { Garage g; g.id = stoi(d[0]); g.name = d[1]; g.location = d[2]; g.phone = d[3]; garages.append(g); } }
+
+        ifstream carFile("cars.txt"); if (!carFile.is_open()) carFile.open("Cars.txt");
         if (carFile.is_open()) {
             while (getline(carFile, line)) {
                 vector<string> d = split(line, ',');
@@ -129,13 +160,16 @@ public:
                     int sId = stoi(d[0]);
                     int resCust = (d.size() >= 10) ? stoi(d[9]) : -1;
                     Car c(stoi(d[1]), d[2], d[3], stoi(d[4]), stod(d[5]), stod(d[7]), stoi(d[6]), (time_t)stoll(d[8]), resCust);
-                    for (auto& r : showrooms) if (r.id == sId) r.cars.push_back(c);
+                    LinkedList<Showroom>::Node* curr = showrooms.head;
+                    while (curr) { if (curr->data.id == sId) { curr->data.cars.append(c); break; } curr = curr->next; }
                 }
             }
         }
 
-        ifstream srvFile("Services.txt"); if (srvFile.is_open()) { while (getline(srvFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 4) { int gId = stoi(d[0]); Service s(stoi(d[1]), d[2], stod(d[3])); for (auto& g : garages) if (g.id == gId) g.services.push_back(s); } } }
-        ifstream hcFile("history_cars.txt"); if (hcFile.is_open()) { while (getline(hcFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 7) { int cId = stoi(d[0]); for (auto& cust : customers) if (cust.id == cId) cust.carHistory.push_back(HistoryRecordCars(stoi(d[1]), stoi(d[2]), d[3], d[4], stod(d[5]), stoi(d[6]))); } } }
-        ifstream hsFile("history_services.txt"); if (hsFile.is_open()) { while (getline(hsFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 6) { int cId = stoi(d[0]); for (auto& cust : customers) if (cust.id == cId) cust.serviceHistory.push_back(HistoryRecordServices(stoi(d[1]), stoi(d[2]), d[3], d[4], stod(d[5]))); } } }
+        ifstream srvFile("services.txt"); if (!srvFile.is_open()) srvFile.open("Services.txt");
+        if (srvFile.is_open()) { while (getline(srvFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 4) { int gId = stoi(d[0]); Service s(stoi(d[1]), d[2], stod(d[3])); LinkedList<Garage>::Node* curr = garages.head; while (curr) { if (curr->data.id == gId) { curr->data.services.append(s); break; } curr = curr->next; } } } }
+
+        ifstream hcFile("history_cars.txt"); if (hcFile.is_open()) { while (getline(hcFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 7) { int cId = stoi(d[0]); LinkedList<Customer>::Node* curr = customers.head; while (curr) { if (curr->data.id == cId) { curr->data.carHistory.append(HistoryRecordCars(stoi(d[1]), stoi(d[2]), d[3], d[4], stod(d[5]), stoi(d[6]))); break; } curr = curr->next; } } } }
+        ifstream hsFile("history_services.txt"); if (hsFile.is_open()) { while (getline(hsFile, line)) { vector<string> d = split(line, ','); if (d.size() >= 6) { int cId = stoi(d[0]); LinkedList<Customer>::Node* curr = customers.head; while (curr) { if (curr->data.id == cId) { curr->data.serviceHistory.append(HistoryRecordServices(stoi(d[1]), stoi(d[2]), d[3], d[4], stod(d[5]))); break; } curr = curr->next; } } } }
     }
 };

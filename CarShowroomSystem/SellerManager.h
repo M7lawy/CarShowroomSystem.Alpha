@@ -8,287 +8,319 @@ using namespace std;
 class SellerManager {
 public:
     static int login(Database& db, string user, string pass) {
-        for (auto& s : db.sellers) if (s.username == user && s.password == pass) return s.id;
+        LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.username == user && s->data.password == pass) return s->data.id; s = s->next; }
         return -1;
     }
 
     static void registerSeller(Database& db) {
-        int maxId = 0; for (const auto& x : db.sellers) if (x.id > maxId) maxId = x.id;
+        int maxId = 0; LinkedList<Seller>::Node* curr = db.sellers.head;
+        while (curr) { if (curr->data.id > maxId) maxId = curr->data.id; curr = curr->next; }
         Seller s; s.id = maxId + 1;
         cout << "User: "; cin >> s.username; cout << "Pass: "; cin >> s.password;
-        db.sellers.push_back(s); db.saveAll();
+        db.sellers.append(s); db.saveAll();
         cout << "Registered! ID: " << s.id << endl;
     }
 
-    // --- HELPERS ---
+    static void changePassword(Database& db, int id) {
+        LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) {
+            if (s->data.id == id) {
+                string n; cout << "New Password: "; cin >> n;
+                s->data.password = n; db.saveAll(); cout << "Changed.\n"; return;
+            }
+            s = s->next;
+        }
+    }
+
     static void showMyCars(Database& db, int sellerID) {
-        int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
+        int rId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) rId = s->data.myShowroomID; s = s->next; }
+
         if (rId == -1) { cout << "No Showroom.\n"; return; }
         cout << "\n--- MY CARS ---\n";
-        for (auto& r : db.showrooms) {
-            if (r.id == rId) {
-                if (r.cars.empty()) cout << "No cars.\n";
-                for (auto& c : r.cars) {
-                    string st = (c.status == 2) ? "SOLD" : (c.status == 1 ? "RESERVED" : "AVAILABLE");
-                    cout << "ID: " << c.id << " | " << c.year << " " << c.make << " " << c.model
-                        << " | $" << c.price << " | Rent: $" << c.rentPrice << " | " << st << endl;
+
+        LinkedList<Showroom>::Node* r = db.showrooms.head;
+        while (r) {
+            if (r->data.id == rId) {
+                if (r->data.cars.isEmpty()) cout << "No cars.\n";
+                LinkedList<Car>::Node* c = r->data.cars.head;
+                while (c) {
+                    string st = (c->data.status == 2) ? "SOLD" : (c->data.status == 1 ? "RESERVED" : "AVAILABLE");
+                    cout << "ID: " << c->data.id << " | " << c->data.year << " " << c->data.make << " " << c->data.model
+                        << " | $" << c->data.price << " | Rent: $" << c->data.rentPrice << " | " << st << endl;
+                    c = c->next;
                 }
             }
+            r = r->next;
         }
         cout << "---------------\n";
     }
 
     static void showMyServices(Database& db, int sellerID) {
-        int gId = -1; for (auto& s : db.sellers) if (s.id == sellerID) gId = s.myGarageID;
+        int gId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) gId = s->data.myGarageID; s = s->next; }
+
         if (gId == -1) { cout << "No Garage.\n"; return; }
         cout << "\n--- MY SERVICES ---\n";
-        for (auto& g : db.garages) {
-            if (g.id == gId) {
-                if (g.services.empty()) cout << "No services.\n";
-                for (auto& s : g.services) cout << "ID: " << s.id << " | " << s.name << " | $" << s.price << endl;
+
+        LinkedList<Garage>::Node* g = db.garages.head;
+        while (g) {
+            if (g->data.id == gId) {
+                if (g->data.services.isEmpty()) cout << "No services.\n";
+                LinkedList<Service>::Node* sv = g->data.services.head;
+                while (sv) {
+                    cout << "ID: " << sv->data.id << " | " << sv->data.name << " | $" << sv->data.price << endl;
+                    sv = sv->next;
+                }
             }
+            g = g->next;
         }
         cout << "-------------------\n";
     }
 
-    // --- SHOWROOM MANAGEMENT ---
     static void createShowroom(Database& db, int sellerID) {
-        for (auto& s : db.sellers) {
-            if (s.id == sellerID) {
-                if (s.myShowroomID != -1) { cout << "Already have a showroom!\n"; return; }
-                int maxId = 0; for (const auto& x : db.showrooms) if (x.id > maxId) maxId = x.id;
+        LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) {
+            if (s->data.id == sellerID) {
+                if (s->data.myShowroomID != -1) { cout << "Already have a showroom!\n"; return; }
+                int maxId = 0; LinkedList<Showroom>::Node* rTmp = db.showrooms.head;
+                while (rTmp) { if (rTmp->data.id > maxId) maxId = rTmp->data.id; rTmp = rTmp->next; }
+
                 Showroom r; r.id = maxId + 1;
                 cout << "Name: "; cin.ignore(); getline(cin, r.name);
                 cout << "Location: "; getline(cin, r.location); cout << "Phone: "; cin >> r.phone;
-                db.showrooms.push_back(r); s.myShowroomID = r.id; db.saveAll();
-                cout << "Created.\n";
+                db.showrooms.append(r); s->data.myShowroomID = r.id; db.saveAll();
+                cout << "Created.\n"; return;
             }
+            s = s->next;
+        }
+    }
+
+    static void createGarage(Database& db, int sellerID) {
+        LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) {
+            if (s->data.id == sellerID) {
+                if (s->data.myGarageID != -1) { cout << "Already have a garage.\n"; return; }
+                int maxId = 0; LinkedList<Garage>::Node* gTmp = db.garages.head;
+                while (gTmp) { if (gTmp->data.id > maxId) maxId = gTmp->data.id; gTmp = gTmp->next; }
+
+                Garage g; g.id = maxId + 1;
+                cout << "Name: "; cin.ignore(); getline(cin, g.name);
+                cout << "Location: "; getline(cin, g.location); cout << "Phone: "; cin >> g.phone;
+                db.garages.append(g); s->data.myGarageID = g.id; db.saveAll();
+                cout << "Garage Created.\n"; return;
+            }
+            s = s->next;
         }
     }
 
     static void addCar(Database& db, int sellerID) {
-        int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
+        int rId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) rId = s->data.myShowroomID; s = s->next; }
         if (rId == -1) { cout << "Create showroom first.\n"; return; }
-        for (auto& r : db.showrooms) {
-            if (r.id == rId) {
-                int maxId = 0; for (const auto& c : r.cars) if (c.id > maxId) maxId = c.id;
+
+        LinkedList<Showroom>::Node* r = db.showrooms.head;
+        while (r) {
+            if (r->data.id == rId) {
+                int maxId = 0; LinkedList<Car>::Node* c = r->data.cars.head;
+                while (c) { if (c->data.id > maxId) maxId = c->data.id; c = c->next; }
                 int cid = maxId + 1;
                 string mk, md; double p, rp; int y;
                 cout << "Make: "; cin >> mk; cout << "Model: "; cin >> md;
                 cout << "Year: "; cin >> y; cout << "Price: "; cin >> p; cout << "Rent Price: "; cin >> rp;
-                r.cars.push_back(Car(cid, mk, md, y, p, rp)); db.saveAll();
-                cout << "Car Added.\n";
+                r->data.cars.append(Car(cid, mk, md, y, p, rp)); db.saveAll();
+                cout << "Car Added.\n"; return;
             }
+            r = r->next;
         }
     }
 
     static void deleteCar(Database& db, int sellerID) {
         showMyCars(db, sellerID);
-        int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
+        int rId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) rId = s->data.myShowroomID; s = s->next; }
         if (rId == -1) return;
+
         int cId; cout << "Car ID to delete: "; cin >> cId;
-        for (auto& r : db.showrooms) if (r.id == rId) {
-            for (auto it = r.cars.begin(); it != r.cars.end(); ++it) {
-                if (it->id == cId) { r.cars.erase(it); db.saveAll(); cout << "Deleted.\n"; return; }
+        LinkedList<Showroom>::Node* r = db.showrooms.head;
+        while (r) {
+            if (r->data.id == rId) {
+                if (r->data.cars.removeById(cId)) { db.saveAll(); cout << "Deleted.\n"; return; }
             }
+            r = r->next;
         }
         cout << "Car not found.\n";
     }
 
-    
     static void deleteAllCars(Database& db, int sellerID) {
-        int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
+        int rId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) rId = s->data.myShowroomID; s = s->next; }
         if (rId == -1) return;
 
-        cout << "Are you sure you want to delete ALL cars? (1.Yes 0.No): "; int c; cin >> c;
-        if (c != 1) return;
-
-        for (auto& r : db.showrooms) {
-            if (r.id == rId) {
-                r.cars.clear(); db.saveAll(); cout << "All Cars Deleted.\n"; return;
-            }
-        }
+        cout << "Delete ALL cars? (1.Yes 0.No): "; int c; cin >> c; if (c != 1) return;
+        LinkedList<Showroom>::Node* r = db.showrooms.head;
+        while (r) { if (r->data.id == rId) { r->data.cars.clear(); db.saveAll(); cout << "All Cars Deleted.\n"; return; } r = r->next; }
     }
 
-    // ** DELETE SHOWROOM **
     static void deleteMyShowroom(Database& db, int sellerID) {
-        int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
+        int rId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) rId = s->data.myShowroomID; s = s->next; }
         if (rId == -1) return;
 
-        cout << "Delete ENTIRE Showroom? This cannot be undone. (1.Yes 0.No): "; int c; cin >> c;
-        if (c != 1) return;
-
-        for (auto it = db.showrooms.begin(); it != db.showrooms.end(); ++it) {
-            if (it->id == rId) {
-                db.showrooms.erase(it);
-                for (auto& s : db.sellers) if (s.id == sellerID) s.myShowroomID = -1;
-                db.saveAll(); cout << "Showroom Deleted.\n"; return;
-            }
+        cout << "Delete ENTIRE Showroom? (1.Yes 0.No): "; int c; cin >> c; if (c != 1) return;
+        if (db.showrooms.removeById(rId)) {
+            LinkedList<Seller>::Node* tempS = db.sellers.head;
+            while (tempS) { if (tempS->data.id == sellerID) tempS->data.myShowroomID = -1; tempS = tempS->next; }
+            db.saveAll(); cout << "Showroom Deleted.\n";
         }
     }
 
     static void editCarPrice(Database& db, int sellerID) {
         showMyCars(db, sellerID);
-        int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
+        int rId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) rId = s->data.myShowroomID; s = s->next; }
         if (rId == -1) return;
-        int cId; cout << "Enter Car ID to edit: "; cin >> cId;
-        for (auto& r : db.showrooms) {
-            if (r.id == rId) {
-                for (auto& c : r.cars) {
-                    if (c.id == cId) {
-                        cout << "Current Price: $" << c.price << ". New Price: "; cin >> c.price;
-                        cout << "Current Rent: $" << c.rentPrice << ". New Rent: "; cin >> c.rentPrice;
-                        db.saveAll(); cout << "Prices Updated.\n"; return;
+
+        int cId; cout << "Enter Car ID: "; cin >> cId;
+        LinkedList<Showroom>::Node* r = db.showrooms.head;
+        while (r) {
+            if (r->data.id == rId) {
+                LinkedList<Car>::Node* c = r->data.cars.head;
+                while (c) {
+                    if (c->data.id == cId) {
+                        cout << "Current Price: " << c->data.price << ". New: "; cin >> c->data.price;
+                        cout << "Current Rent: " << c->data.rentPrice << ". New: "; cin >> c->data.rentPrice;
+                        db.saveAll(); cout << "Updated.\n"; return;
                     }
+                    c = c->next;
                 }
             }
+            r = r->next;
         }
-        cout << "Car not found.\n";
-    }
-
-    // --- GARAGE MANAGEMENT ---
-    static void createGarage(Database& db, int sellerID) {
-        for (auto& s : db.sellers) {
-            if (s.id == sellerID) {
-                if (s.myGarageID != -1) { cout << "Already have a garage.\n"; return; }
-                int maxId = 0; for (const auto& x : db.garages) if (x.id > maxId) maxId = x.id;
-                Garage g; g.id = maxId + 1;
-                cout << "Name: "; cin.ignore(); getline(cin, g.name);
-                cout << "Location: "; getline(cin, g.location); cout << "Phone: "; cin >> g.phone;
-                db.garages.push_back(g); s.myGarageID = g.id; db.saveAll();
-                cout << "Garage Created.\n";
-            }
-        }
+        cout << "Not Found.\n";
     }
 
     static void addService(Database& db, int sellerID) {
-        int gId = -1; for (auto& s : db.sellers) if (s.id == sellerID) gId = s.myGarageID;
+        int gId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) gId = s->data.myGarageID; s = s->next; }
         if (gId == -1) { cout << "Create garage first.\n"; return; }
-        for (auto& g : db.garages) {
-            if (g.id == gId) {
-                string n; double p; cout << "Service Name: "; cin.ignore(); getline(cin, n); cout << "Price: "; cin >> p;
-                int maxId = 0; for (const auto& s : g.services) if (s.id > maxId) maxId = s.id;
+
+        LinkedList<Garage>::Node* g = db.garages.head;
+        while (g) {
+            if (g->data.id == gId) {
+                string n; double p; cout << "Name: "; cin.ignore(); getline(cin, n); cout << "Price: "; cin >> p;
+                int maxId = 0; LinkedList<Service>::Node* sv = g->data.services.head;
+                while (sv) { if (sv->data.id > maxId) maxId = sv->data.id; sv = sv->next; }
                 int sId = maxId + 1;
-                g.services.push_back(Service(sId, n, p)); db.saveAll();
-                cout << "Service Added!\n";
+                g->data.services.append(Service(sId, n, p)); db.saveAll();
+                cout << "Service Added!\n"; return;
             }
+            g = g->next;
         }
     }
 
     static void deleteService(Database& db, int sellerID) {
         showMyServices(db, sellerID);
-        int gId = -1; for (auto& s : db.sellers) if (s.id == sellerID) gId = s.myGarageID;
+        int gId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) gId = s->data.myGarageID; s = s->next; }
         if (gId == -1) return;
-        int sId; cout << "Service ID to delete: "; cin >> sId;
-        for (auto& g : db.garages) if (g.id == gId) {
-            for (auto it = g.services.begin(); it != g.services.end(); ++it) {
-                if (it->id == sId) { g.services.erase(it); db.saveAll(); cout << "Deleted.\n"; return; }
+
+        int sId; cout << "Service ID: "; cin >> sId;
+        LinkedList<Garage>::Node* g = db.garages.head;
+        while (g) {
+            if (g->data.id == gId) {
+                if (g->data.services.removeById(sId)) { db.saveAll(); cout << "Deleted.\n"; return; }
             }
+            g = g->next;
         }
-        cout << "Service not found.\n";
+        cout << "Not Found.\n";
     }
 
-    // ** NEW: DELETE ALL SERVICES **
     static void deleteAllServices(Database& db, int sellerID) {
-        int gId = -1; for (auto& s : db.sellers) if (s.id == sellerID) gId = s.myGarageID;
+        int gId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) gId = s->data.myGarageID; s = s->next; }
         if (gId == -1) return;
-
-        cout << "Delete ALL Services? (1.Yes 0.No): "; int c; cin >> c;
-        if (c != 1) return;
-
-        for (auto& g : db.garages) {
-            if (g.id == gId) { g.services.clear(); db.saveAll(); cout << "All Services Deleted.\n"; return; }
-        }
+        cout << "Delete ALL Services? (1.Yes 0.No): "; int c; cin >> c; if (c != 1) return;
+        LinkedList<Garage>::Node* g = db.garages.head;
+        while (g) { if (g->data.id == gId) { g->data.services.clear(); db.saveAll(); cout << "All Deleted.\n"; return; } g = g->next; }
     }
 
-    // ** NEW: DELETE GARAGE **
     static void deleteMyGarage(Database& db, int sellerID) {
-        int gId = -1; for (auto& s : db.sellers) if (s.id == sellerID) gId = s.myGarageID;
+        int gId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) gId = s->data.myGarageID; s = s->next; }
         if (gId == -1) return;
-
-        cout << "Delete ENTIRE Garage? (1.Yes 0.No): "; int c; cin >> c;
-        if (c != 1) return;
-
-        for (auto it = db.garages.begin(); it != db.garages.end(); ++it) {
-            if (it->id == gId) {
-                db.garages.erase(it);
-                for (auto& s : db.sellers) if (s.id == sellerID) s.myGarageID = -1;
-                db.saveAll(); cout << "Garage Deleted.\n"; return;
-            }
+        cout << "Delete ENTIRE Garage? (1.Yes 0.No): "; int c; cin >> c; if (c != 1) return;
+        if (db.garages.removeById(gId)) {
+            LinkedList<Seller>::Node* tempS = db.sellers.head;
+            while (tempS) { if (tempS->data.id == sellerID) tempS->data.myGarageID = -1; tempS = tempS->next; }
+            db.saveAll(); cout << "Garage Deleted.\n";
         }
     }
 
     static void editServicePrice(Database& db, int sellerID) {
         showMyServices(db, sellerID);
-        int gId = -1; for (auto& s : db.sellers) if (s.id == sellerID) gId = s.myGarageID;
+        int gId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) gId = s->data.myGarageID; s = s->next; }
         if (gId == -1) return;
+
         int sId; cout << "Enter Service ID: "; cin >> sId;
-        for (auto& g : db.garages) {
-            if (g.id == gId) {
-                for (auto& s : g.services) {
-                    if (s.id == sId) {
-                        cout << "Current: " << s.price << ". New Price: "; cin >> s.price;
+        LinkedList<Garage>::Node* g = db.garages.head;
+        while (g) {
+            if (g->data.id == gId) {
+                LinkedList<Service>::Node* sv = g->data.services.head;
+                while (sv) {
+                    if (sv->data.id == sId) {
+                        cout << "Current: " << sv->data.price << ". New: "; cin >> sv->data.price;
                         db.saveAll(); cout << "Updated.\n"; return;
                     }
+                    sv = sv->next;
                 }
             }
+            g = g->next;
         }
-        cout << "Service not found.\n";
+        cout << "Not Found.\n";
     }
 
-    static void viewMyBusiness(Database& db, int sellerID) {
-        showMyCars(db, sellerID);
-        showMyServices(db, sellerID);
-    }
+    static void viewMyBusiness(Database& db, int sellerID) { showMyCars(db, sellerID); showMyServices(db, sellerID); }
 
     static void viewSoldCars(Database& db, int sellerID) {
-        int rId = -1; for (auto& s : db.sellers) if (s.id == sellerID) rId = s.myShowroomID;
-        if (rId == -1) { cout << "No showroom.\n"; return; }
+        int rId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) rId = s->data.myShowroomID; s = s->next; }
+        if (rId == -1) { cout << "No Showroom.\n"; return; }
 
-        cout << "\n--- SOLD CARS HISTORY ---\n";
+        cout << "\n--- SOLD CARS ---\n";
+        LinkedList<Showroom>::Node* r = db.showrooms.head;
         bool found = false;
-        for (auto& r : db.showrooms) {
-            if (r.id == rId) {
-                for (const auto& c : r.cars) {
-                    if (c.status == 2) {
-                        cout << "ID: " << c.id << " | " << c.year << " " << c.make << " " << c.model << " | Sold For: $" << c.price << endl;
-                        found = true;
-                    }
+        while (r) {
+            if (r->data.id == rId) {
+                LinkedList<Car>::Node* c = r->data.cars.head;
+                while (c) {
+                    if (c->data.status == 2) { cout << "ID: " << c->data.id << " | " << c->data.make << " ($" << c->data.price << ")\n"; found = true; }
+                    c = c->next;
                 }
-                if (found) {
-                    cout << "\n1. Delete a Sold Record  2. Back\nChoice: ";
-                    int ch; cin >> ch;
-                    if (ch == 1) {
-                        int cId; cout << "Enter Car ID to delete record: "; cin >> cId;
-                        for (auto it = r.cars.begin(); it != r.cars.end(); ++it) {
-                            if (it->id == cId && it->status == 2) {
-                                r.cars.erase(it); db.saveAll(); cout << "Record Deleted.\n"; return;
-                            }
-                        }
-                        cout << "Car ID not found in sold list.\n";
-                    }
-                }
-                else cout << "No sold cars yet.\n";
             }
+            r = r->next;
         }
+        if (!found) cout << "None.\n";
     }
 
     static void viewServicesProvided(Database& db, int sellerID) {
-        int gId = -1; for (auto& s : db.sellers) if (s.id == sellerID) gId = s.myGarageID;
-        if (gId == -1) { cout << "No garage.\n"; return; }
+        int gId = -1; LinkedList<Seller>::Node* s = db.sellers.head;
+        while (s) { if (s->data.id == sellerID) gId = s->data.myGarageID; s = s->next; }
+        if (gId == -1) { cout << "No Garage.\n"; return; }
 
-        cout << "\n--- SERVICES PROVIDED HISTORY ---\n";
-        bool found = false;
-        for (const auto& c : db.customers) {
-            for (const auto& h : c.serviceHistory) {
-                if (h.garageID == gId) {
-                    string sName = "Unknown";
-                    for (auto& g : db.garages) if (g.id == gId) for (auto& s : g.services) if (s.id == h.serviceID) sName = s.name;
-                    cout << "Cust: " << c.username << " | Srv: " << sName << " | Date: " << h.date << " | $" << h.cost << endl;
-                    found = true;
+        cout << "\n--- SERVICES PROVIDED ---\n";
+        LinkedList<Customer>::Node* c = db.customers.head;
+        while (c) {
+            LinkedList<HistoryRecordServices>::Node* h = c->data.serviceHistory.head;
+            while (h) {
+                if (h->data.garageID == gId) {
+                    cout << "Cust: " << c->data.username << " | Date: " << h->data.date << " | $" << h->data.cost << endl;
                 }
+                h = h->next;
             }
+            c = c->next;
         }
-        if (!found) cout << "No services performed yet.\n";
     }
 };
